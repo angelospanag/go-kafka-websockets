@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
+	"github.com/segmentio/kafka-go"
 )
 
 var upgrader = websocket.Upgrader{
@@ -27,7 +27,6 @@ func main() {
 	kafkaBootstrap := os.Getenv("BOOTSTRAP_SERVERS")
 	kafkaTopics := os.Getenv("TOPICS")
 	kafkaGroup := os.Getenv("GROUP_ID")
-	autoOffset := os.Getenv("AUTO_OFFSET_RESET") // "earliest" or "latest"
 
 	if kafkaBootstrap == "" || kafkaTopics == "" {
 		log.Fatal("BOOTSTRAP_SERVERS and TOPICS must be set")
@@ -38,7 +37,7 @@ func main() {
 	})
 
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		wsHandler(w, r, kafkaBootstrap, kafkaTopics, kafkaGroup, autoOffset)
+		wsHandler(w, r, kafkaBootstrap, kafkaTopics, kafkaGroup)
 	})
 
 	server := &http.Server{
@@ -59,60 +58,42 @@ func main() {
 	log.Println("Shutting down server...")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	err = server.Shutdown(ctx)
-	if err != nil {
-		return
+	if err := server.Shutdown(ctx); err != nil {
+		log.Println("Server shutdown error:", err)
 	}
 }
 
-func wsHandler(w http.ResponseWriter, r *http.Request, bootstrap, topics, group, offset string) {
+func wsHandler(w http.ResponseWriter, r *http.Request, broker, topic, groupID string) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("WebSocket upgrade error:", err)
 		return
 	}
-	defer func(conn *websocket.Conn) {
-		err := conn.Close()
-		if err != nil {
-			log.Println("Failed to close WebSocket connection:", err)
-		}
-	}(conn)
+	defer conn.Close()
 
-	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers": bootstrap,
-		"group.id":          group,
-		"auto.offset.reset": offset,
+	// Create Kafka reader (consumer)
+	reader := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:  []string{broker},
+		GroupID:  groupID,
+		Topic:    topic,
+		MinBytes: 1,    // 1B
+		MaxBytes: 10e6, // 10MB
 	})
-	if err != nil {
-		log.Println("Failed to create Kafka consumer:", err)
-		return
-	}
-	defer func(consumer *kafka.Consumer) {
-		err := consumer.Close()
-		if err != nil {
-			log.Println("Failed to close Kafka consumer:", err)
-		}
-	}(consumer)
+	defer reader.Close()
 
-	err = consumer.SubscribeTopics([]string{topics}, nil)
-	if err != nil {
-		log.Println("Failed to subscribe to topics:", err)
-		return
-	}
-
+	ctx := context.Background()
 	log.Println("WebSocket connected and Kafka consumer started")
 
 	for {
-		msg, err := consumer.ReadMessage(-1)
+		msg, err := reader.ReadMessage(ctx)
 		if err != nil {
-			// Errors are informational; continue
-			log.Println("Consumer error:", err)
+			log.Println("Kafka read error:", err)
+			time.Sleep(time.Second)
 			continue
 		}
 
-		log.Printf("Consumed: topic=%s partition=%d offset=%d key=%s value=%s timestamp=%v\n",
-			*msg.TopicPartition.Topic, msg.TopicPartition.Partition, msg.TopicPartition.Offset,
-			string(msg.Key), string(msg.Value), msg.Timestamp)
+		log.Printf("Consumed: topic=%s partition=%d offset=%d value=%s\n",
+			msg.Topic, msg.Partition, msg.Offset, string(msg.Value))
 
 		if err := conn.WriteMessage(websocket.TextMessage, msg.Value); err != nil {
 			log.Println("WebSocket write error:", err)
