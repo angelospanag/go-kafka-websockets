@@ -1,0 +1,53 @@
+version: "3"
+
+tasks:
+  dev:
+    desc: "🚀 Run the application in dev mode"
+    silent: true
+    cmds:
+      - echo "🚀 Running in dev mode..."
+      - go run ./cmd/api
+
+  fmt:
+    desc: "🎨 Format the code"
+    silent: true
+    cmds:
+      - echo "🎨 Formatting code..."
+      - golangci-lint fmt
+
+  lint:
+    desc: "🔍 Lint the codebase"
+    silent: true
+    cmds:
+      - echo "🔍 Linting code..."
+      - golangci-lint run ./... || echo "⚠️ Linting issues found"
+
+  update-deps:
+    desc: "⬆️ Update and tidy dependencies"
+    silent: true
+    cmds:
+      - echo "⬆️ Updating dependencies..."
+      - go get -u ./...
+      - go mod tidy
+
+  build:
+    desc: "🔧 Build the Go binary"
+    silent: true
+    cmds:
+      - echo "🔧 Building..."
+      - go build -o ./bin/api ./cmd/api
+
+  run:
+    desc: "🚀 Build and run the application"
+    silent: true
+    deps: [build]
+    cmds:
+      - echo "🚀 Running..."
+      - ./bin/api
+
+  clean:
+    desc: "🧹 Clean build artifacts"
+    silent: true
+    cmds:
+      - echo "🧹 Cleaning..."
+      - rm -rf ./bin
