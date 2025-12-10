@@ -69,7 +69,12 @@ func wsHandler(w http.ResponseWriter, r *http.Request, broker, topic, groupID st
 		log.Println("WebSocket upgrade error:", err)
 		return
 	}
-	defer conn.Close()
+	defer func(conn *websocket.Conn) {
+		err := conn.Close()
+		if err != nil {
+			log.Println("WebSocket close error:", err)
+		}
+	}(conn)
 
 	// Create Kafka reader (consumer)
 	reader := kafka.NewReader(kafka.ReaderConfig{
@@ -79,7 +84,12 @@ func wsHandler(w http.ResponseWriter, r *http.Request, broker, topic, groupID st
 		MinBytes: 1,    // 1B
 		MaxBytes: 10e6, // 10MB
 	})
-	defer reader.Close()
+	defer func(reader *kafka.Reader) {
+		err := reader.Close()
+		if err != nil {
+			log.Println("Kafka close error:", err)
+		}
+	}(reader)
 
 	ctx := context.Background()
 	log.Println("WebSocket connected and Kafka consumer started")
