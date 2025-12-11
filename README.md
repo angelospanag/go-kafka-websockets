@@ -30,11 +30,12 @@ using a JavaScript websockets connection.
 - [Go 1.25](https://go.dev)
 - [golangci-lint](https://golangci-lint.run/) for linting
 - [Task](https://taskfile.dev/) for running tasks
+- [Apache Kafka](https://kafka.apache.org/)
 
 ### macOS using `brew`
 
 ```bash
-brew install go@1.25 golangci-lint go-task
+brew install go@1.25 golangci-lint go-task kafka
 ```
 
 ### Create a `.env` file at the root of the project

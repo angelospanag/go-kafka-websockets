@@ -1,0 +1,32 @@
+services:
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      # Example env — may vary depending on Kafka version
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9092
+      - KAFKA_NODE_ID=1
+    # optionally specify volumes if persistence is needed
+
+
+  go-server:
+    build: .
+    container_name: go-server
+    environment:
+      TOPICS: quickstart-events
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: my-group
+      AUTO_OFFSET_RESET: latest
+    depends_on:
+      - kafka
+    ports:
+      - "8000:8000"
+    working_dir: /app
+
+volumes:
+  kafka_data:
