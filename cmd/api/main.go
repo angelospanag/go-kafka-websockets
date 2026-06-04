@@ -32,9 +32,7 @@ func main() {
 		log.Fatal("BOOTSTRAP_SERVERS and TOPICS must be set")
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "templates/index.html")
-	})
+	http.HandleFunc("/", newHomeHandler("templates/index.html"))
 
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		wsHandler(w, r, kafkaBootstrap, kafkaTopics, kafkaGroup)
@@ -60,6 +58,12 @@ func main() {
 	defer cancel()
 	if err := server.Shutdown(ctx); err != nil {
 		log.Println("Server shutdown error:", err)
+	}
+}
+
+func newHomeHandler(templatePath string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, templatePath)
 	}
 }
 
