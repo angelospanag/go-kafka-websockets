@@ -24,7 +24,7 @@ run = "go vet ./..."
 
 [tasks.vuln]
 description = "🛡️ Scan dependencies for known vulnerabilities"
-run = "go run golang.org/x/vuln/cmd/govulncheck@latest ./..."
+run = "go tool govulncheck ./..."
 
 [tasks.deps]
 description = "📥 Update and tidy dependencies"
