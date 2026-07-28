@@ -1,6 +1,6 @@
 module github.com/angelospanag/go-kafka-websockets
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/gorilla/websocket v1.5.3
@@ -9,7 +9,7 @@ require (
 )
 
 require (
-	github.com/klauspost/compress v1.18.6 // indirect
+	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.27 // indirect
 	golang.org/x/mod v0.36.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
