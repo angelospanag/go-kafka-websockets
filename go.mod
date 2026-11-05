@@ -1,6 +1,6 @@
 module github.com/angelospanag/go-kafka-websockets
 
-go 1.26.5
+go 1.27.3
 
 require (
 	github.com/gorilla/websocket v1.5.3
@@ -9,14 +9,14 @@ require (
 )
 
 require (
-	github.com/klauspost/compress v1.19.1 // indirect
-	github.com/pierrec/lz4/v4 v4.1.27 // indirect
-	golang.org/x/mod v0.36.0 // indirect
-	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
-	golang.org/x/telemetry v0.0.0-20260603145448-488200d49c17 // indirect
-	golang.org/x/tools v0.45.0 // indirect
-	golang.org/x/vuln v1.3.0 // indirect
+	github.com/klauspost/compress v1.20.3 // indirect
+	github.com/pierrec/lz4/v4 v4.1.33 // indirect
+	golang.org/x/mod v0.42.0 // indirect
+	golang.org/x/sync v0.24.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/telemetry v0.0.0-20261021172232-6cd571d43fbb // indirect
+	golang.org/x/tools v0.52.0 // indirect
+	golang.org/x/vuln v1.9.0 // indirect
 )
 
 tool golang.org/x/vuln/cmd/govulncheck

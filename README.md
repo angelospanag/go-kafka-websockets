@@ -4,7 +4,7 @@ Experimenting with a full flow of sending messages from an Apache Kafka consumer
 
 ## Getting Started
 
-[mise](https://mise.jdx.dev/) manages the pinned toolchain (Go 1.26, golangci-lint).
+[mise](https://mise.jdx.dev/) manages the pinned toolchain (Go 1.27, golangci-lint).
 
 ```bash
 # macOS / Linux
@@ -58,6 +58,20 @@ mise run dev
 ```
 
 Visit http://localhost:8000 and send some text from the Kafka console producer. The text will appear on your screen after being picked up by the Kafka consumer in the backend and forwarded through the WebSocket connection.
+
+## Container
+
+The image is built on `gcr.io/distroless/static-debian13:nonroot`, so the server runs as the
+unprivileged `nonroot` user (uid 65532) and listens on port 8000:
+
+```bash
+podman build -t go-kafka-websockets .
+podman run --rm -p 8000:8000 \
+  -e TOPICS=quickstart-events \
+  -e BOOTSTRAP_SERVERS=host.containers.internal:9092 \
+  -e GROUP_ID=my-group \
+  go-kafka-websockets
+```
 
 ## Development
 
